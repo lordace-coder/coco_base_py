@@ -15,7 +15,24 @@ class Record:
         self.data = data.get("data", {})
         self.id = data.get("id", "")
         self.collectionId = data.get("collection_id", "")
-        self.createdAt = datetime.fromtimestamp(data.get("created_at", 0))
+        created_at = data.get("created_at", 0)
+        # Handle string, int, float, or ISO format for created_at
+        if isinstance(created_at, datetime):
+            self.createdAt = created_at
+        elif isinstance(created_at, (int, float)):
+            self.createdAt = datetime.fromtimestamp(created_at)
+        elif isinstance(created_at, str):
+            try:
+                # Try ISO format first
+                self.createdAt = datetime.fromisoformat(created_at)
+            except ValueError:
+                try:
+                    # Try as float timestamp string
+                    self.createdAt = datetime.fromtimestamp(float(created_at))
+                except Exception:
+                    self.createdAt = datetime.fromtimestamp(0)
+        else:
+            self.createdAt = datetime.fromtimestamp(0)
         self.collection = data.get("collection", {})
 
     def __repr__(self):
@@ -98,9 +115,45 @@ class Record:
             if isinstance(value, (int, float)):
                 return datetime.fromtimestamp(value)
             if isinstance(value, str):
-                return datetime.fromisoformat(value)
+                try:
+                    return datetime.fromisoformat(value)
+                except ValueError:
+                    return datetime.fromtimestamp(float(value))
         except Exception:
             pass
         if raise_error:
             raise TypeError(f"Value for '{key}' is not datetime-convertible: {value}")
         return None
+
+
+class Collection:
+    """A class representing a collection in a database, allowing for dictionary-like access with typed getters."""
+
+    name: str
+    id: str
+    createdAt: datetime
+
+    def __init__(self, data: dict):
+        self.name = data.get("name", "")
+        self.id = data.get("id", "")
+        created_at = data.get("created_at", 0)
+        # Handle string, int, float, or ISO format for created_at
+        if isinstance(created_at, datetime):
+            self.createdAt = created_at
+        elif isinstance(created_at, (int, float)):
+            self.createdAt = datetime.fromtimestamp(created_at)
+        elif isinstance(created_at, str):
+            try:
+                # Try ISO format first
+                self.createdAt = datetime.fromisoformat(created_at)
+            except ValueError:
+                try:
+                    # Try as float timestamp string
+                    self.createdAt = datetime.fromtimestamp(float(created_at))
+                except Exception:
+                    self.createdAt = datetime.fromtimestamp(0)
+        else:
+            self.createdAt = datetime.fromtimestamp(0)
+
+    def __repr__(self):
+        return f"Collection(name={self.name}, id={self.id}, createdAt={self.createdAt})"

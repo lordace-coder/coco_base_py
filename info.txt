@@ -1,0 +1,6 @@
+# Step 1: Change version in pyproject.toml
+# Step 2: Rebuild the package
+python -m build
+
+# Step 3: Upload to PyPI
+python -m twine upload dist/*
